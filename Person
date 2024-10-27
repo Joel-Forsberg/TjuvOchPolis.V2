@@ -1,0 +1,51 @@
+using System;
+using System.Collections.Generic;
+using TjuvOchPolis.V2;
+
+namespace TjuvOchPolis
+{
+    public class Person
+    {
+        private static Random rnd = new Random();
+        public string Namn { get; set; }
+        public int XPlats { get; set; }
+        public int YPlats { get; set; }
+        public int XRiktning { get; set; }
+        public int YRiktning { get; set; }
+        public List<Saker> Inventory { get; set; }
+
+        public Person(int x, int y)
+        {
+            XPlats = x;
+            YPlats = y;
+            Inventory = new List<Saker>();
+            SetRandomDirection();
+            Namn = GenerateRandomName();
+        }
+
+        public void SetRandomDirection()
+        {
+            XRiktning = rnd.Next(-1, 2);
+            YRiktning = rnd.Next(-1, 2);
+        }
+
+        public void Flytta(int gridWidth, int gridHeight)
+        {
+            XPlats = (XPlats + XRiktning + gridWidth) % gridWidth;
+            YPlats = (YPlats + YRiktning + gridHeight) % gridHeight;
+        }
+
+        public void FlyttaIFangelse(int fangelseXStart, int fangelseXEnd, int fangelseYStart, int fangelseYEnd)
+        {
+            SetRandomDirection(); // Se till att tjuvarna rör sig slumpmässigt
+            XPlats = Math.Max(fangelseXStart, Math.Min(fangelseXEnd, XPlats + XRiktning));
+            YPlats = Math.Max(fangelseYStart, Math.Min(fangelseYEnd, YPlats + YRiktning));
+        }
+
+        public string GenerateRandomName()
+        {
+            string[] names = { "Jenny", "Jacob", "Jake", "Jasmin", "Julie", "Justin", "Jill", "Jayce", "Janne", "Jens", "Julia", "Joe" };
+            return names[rnd.Next(names.Length)];
+        }
+    }
+}
