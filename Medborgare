@@ -1,0 +1,20 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace TjuvOchPolis.V2
+{
+    public class Medborgare : Person
+    {
+        public Medborgare(int x, int y) : base(x, y)
+        {
+            Inventory.Add(new Saker("Nycklar"));
+            Inventory.Add(new Saker("Mobiltelefon"));
+            Inventory.Add(new Saker("Pengar"));
+            Inventory.Add(new Saker("Klocka"));
+
+        }
+    }
+}
