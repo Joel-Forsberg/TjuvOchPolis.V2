@@ -1,0 +1,183 @@
+using System;
+using System.Collections.Generic;
+using TjuvOchPolis.V2;
+
+namespace TjuvOchPolis
+{
+    public class Stad
+    {
+        public string[,] Karta = new string[27, 102];
+        public List<Tjuv> Fangelse = new List<Tjuv>(); // Lista för gripna tjuvar
+        private List<string> Handelser = new List<string>(); // Lista för att samla händelser
+
+        public int RanadeMedborgare { get; private set; }
+        public int ArresteradeTjuvar { get; private set; }
+
+        public void FlyttaPersoner(List<Person> personer, int gridWidth, int gridHeight)
+        {
+            foreach (var person in personer)
+            {
+                if (Fangelse.Contains(person)) // Kontrollera att personen inte är i fängelse
+                {
+                    person.FlyttaIFangelse(32, 78, 24, 26);
+                }
+
+                else
+                {
+                    person.Flytta(gridWidth, gridHeight);
+                }
+            }
+        }
+
+        public void Kollisioner(List<Medborgare> medborgare, List<Tjuv> tjuvar, List<Polis> poliser)
+        {
+            foreach (var tjuv in tjuvar)
+            {
+                if (Fangelse.Contains(tjuv)) continue; // Hoppa över tjuvar som är i fängelse
+
+                // Kolla om tjuven rånar någon medborgare
+                foreach (var medborgareItem in medborgare)
+                {
+                    if (tjuv.XPlats == medborgareItem.XPlats && tjuv.YPlats == medborgareItem.YPlats)
+                    {
+                        Ranade(tjuv, medborgareItem);
+                    }
+                }
+
+                // Kolla om en polis arresterar en tjuv
+                foreach (var polisItem in poliser)
+                {
+                    if (polisItem.XPlats == tjuv.XPlats && polisItem.YPlats == tjuv.YPlats)
+                    {
+                        Arrestera(tjuv, polisItem);
+                    }
+                }
+            }
+        }
+
+        public void Ranade(Tjuv tjuv, Medborgare medborgare)
+        {
+            // Tjuven stjäl ett objekt
+            if (medborgare.Inventory.Count > 0)
+            {
+                var stulet = medborgare.Inventory[0];
+                medborgare.Inventory.Remove(stulet);
+                tjuv.Inventory.Add(stulet);
+                RanadeMedborgare++;
+
+                // Lägg till händelsen i listan
+                Handelser.Add($"Tjuv rånade {medborgare.Namn} och tog {stulet.Namn}.");
+            }
+        }
+
+        public void Arrestera(Tjuv tjuv, Polis polis)
+        {
+            // Polisen arresterar tjuven
+            polis.Inventory.AddRange(tjuv.Inventory); // Polisen tar allt stöldgods
+            tjuv.Inventory.Clear(); // Rensa tjuvens inventarie
+            
+            if(!Fangelse.Contains(tjuv))
+            {
+
+                Random rnd = new Random();
+                tjuv.XPlats = rnd.Next(32, 79);
+                tjuv.YPlats = rnd.Next(24, 27);
+
+                Fangelse.Add(tjuv); // Flytta tjuven till fängelse
+                ArresteradeTjuvar++;
+
+                // Lägg till händelsen i listan
+                Handelser.Add($"Polis arresterade tjuven! Tjuven förs till fängelse.");
+
+            }         
+            
+        }
+
+        public void SkrivUtStad(List<Medborgare> medborgare, List<Tjuv> tjuvar, List<Polis> poliser)
+        {
+            // Rita väggarna
+            for (int i = 0; i < Karta.GetLength(0); i++)
+            {
+                for (int j = 0; j < Karta.GetLength(1); j++)
+                {
+                    Console.SetCursorPosition(j, i);
+                    if (i == 0 || i == Karta.GetLength(0) - 1) Console.Write("-");
+                    else if (j == 0 || j == Karta.GetLength(1) - 1) Console.Write("|");
+                    else Console.Write(" ");
+                    
+                }
+            }
+
+            for (int i = 24; i < 27; i++)
+            {
+                for (int j = 32; j < 80; j++)
+                {
+                    Console.SetCursorPosition(j, i);
+                    if (i == 24 || i == 26 || j == 32 || j == 79)
+                    {
+
+                        Console.ForegroundColor = ConsoleColor.Gray;
+                        Console.Write("X");
+                    }
+                    else
+                    {
+                        Console.Write(" ");
+                    }
+
+                    Console.ResetColor();
+                }
+            }
+
+            // Placera alla personer på kartan med rätt cursorposition
+            foreach (var medborgareItem in medborgare)
+            {
+                Console.SetCursorPosition(medborgareItem.XPlats, medborgareItem.YPlats);
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write("M");
+                Console.ResetColor();
+            }
+
+            foreach (var tjuv in tjuvar)
+            {
+                if(!Fangelse.Contains(tjuv))
+                {
+                    Console.SetCursorPosition(tjuv.XPlats, tjuv.YPlats);
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("T");
+                Console.ResetColor();
+                }
+                
+            }
+
+            foreach (var tjuv in Fangelse)
+            {
+                tjuv.FlyttaIFangelse(32, 78, 24, 26);
+                Console.SetCursorPosition(tjuv.XPlats, tjuv.YPlats);
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("T");
+                Console.ResetColor();
+            }
+
+            foreach (var polisItem in poliser)
+            {
+                Console.SetCursorPosition(polisItem.XPlats, polisItem.YPlats);
+                Console.ForegroundColor = ConsoleColor.Blue;
+                Console.Write("P");
+                Console.ResetColor();
+            }
+
+            // Återställ färgen till vit och skriv ut statistik
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.SetCursorPosition(0, Karta.GetLength(0) + 1);
+            Console.WriteLine($"\nAntal rånade medborgare: {RanadeMedborgare}");
+            Console.WriteLine($"Antal gripna tjuvar: {ArresteradeTjuvar}\n");
+
+            // Skriv ut händelser direkt under spelplanen
+            Console.WriteLine("Händelser:");
+            foreach (var handelseMeddelande in Handelser) Console.WriteLine(handelseMeddelande);
+
+            // Rensa händelser för nästa omgång
+            Handelser.Clear();
+        }
+    }
+}
