@@ -1,0 +1,18 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace TjuvOchPolis.V2
+{
+    public class Saker
+    {
+        public string Namn {  get; set; }
+
+        public Saker(string namn)
+        { 
+            Namn = namn; 
+        }
+    }
+}
