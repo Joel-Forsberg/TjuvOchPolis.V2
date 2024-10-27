@@ -1,0 +1,45 @@
+using System;
+using System.Collections.Generic;
+using TjuvOchPolis;
+using TjuvOchPolis.V2;
+
+public class Program
+{
+    static void Main(string[] args)
+    {
+        Stad staden = new Stad();
+        Random rnd = new Random();
+
+        List<Medborgare> medborgare = new List<Medborgare>();
+        List<Tjuv> tjuvar = new List<Tjuv>();
+        List<Polis> poliser = new List<Polis>();
+
+        // Skapa medborgare
+        for (int i = 0; i < 20; i++)
+            medborgare.Add(new Medborgare(rnd.Next(1, 100), rnd.Next(1, 22)));
+
+        // Skapa tjuvar
+        for (int i = 0; i < 12; i++)
+            tjuvar.Add(new Tjuv(rnd.Next(1, 100), rnd.Next(1, 22)));
+
+        // Skapa poliser
+        for (int i = 0; i < 7; i++)
+            poliser.Add(new Polis(rnd.Next(1, 100), rnd.Next(1, 22)));
+
+        // Spelloop
+        while (true)
+        {
+            // Flytta alla personer
+            staden.FlyttaPersoner(medborgare.Cast<Person>().ToList(), 100, 22);
+            staden.FlyttaPersoner(tjuvar.Cast<Person>().ToList(), 100, 22);
+            staden.FlyttaPersoner(poliser.Cast<Person>().ToList(), 100, 22);
+
+            // Hantera kollisioner och skriv ut spelvärlden
+            staden.Kollisioner(medborgare, tjuvar, poliser);
+            staden.SkrivUtStad(medborgare, tjuvar, poliser);
+
+            // Vänta lite mellan varje omgång
+            System.Threading.Thread.Sleep(500);
+        }
+    }
+}
